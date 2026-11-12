@@ -96,7 +96,7 @@ export function machineTells(t: Tailored): string[] {
 
 /** The claims a draft makes that the profile does not hold: numbers, and capitalized names of tools, places and companies. */
 export function unsupportedClaims(t: Tailored, profile: Profile, posting: string): string[] {
-  const raw = JSON.stringify({ e: profile.experience, p: profile.projects, s: profile.skills, f: profile.facts, su: profile.summary, ed: profile.education, n: profile.name, l: profile.links, a: profile.address, b: profile.answers }).toLowerCase();
+  const raw = JSON.stringify({ e: profile.experience, p: profile.projects, s: profile.skills, f: profile.facts, su: profile.summary, ed: profile.education, n: profile.name, l: profile.links, a: profile.address, rl: profile.resume.location, b: profile.answers }).toLowerCase();
   // "18,000+" in the draft and "18,000" in the profile are the same number; "REST APIs" and "REST API" the same thing.
   const corpus = `${raw} ${raw.replace(/(\d),(?=\d{3})/g, "$1")}`;
   const postingCorpus = posting.toLowerCase();
