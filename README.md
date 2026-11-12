@@ -139,7 +139,7 @@ The longer version, with what it handles and what it leaves to you, is in [docs/
 | **`/resume`** | Picks up the forms that wait for you: a code a board emailed, a robot check, a sign-in. You do that one thing in the tool's window, and the application is recorded. |
 | **`/status`** | Where you stand in a few lines: sent, waiting, left for you and why, what it has cost, and the next step. |
 | **`/profile`** | Changes your profile, your standing answers, your drafts and your voice guide with you. When an answer looked wrong, this is where you fix it, once. |
-| **`/tailor <job id> [--cover]`** | Writes a one-page resume for the job, and with `--cover` a cover letter. Every number and name in the draft is checked against your profile in code. |
+| **`/tailor <job id> [--cover]`** | Writes a resume of up to two pages for the job, and with `--cover` a cover letter. Every number and name in the draft is checked against your profile in code. |
 | **`/daily`** | A few applications a day with nobody watching, inside a standing policy you write and limits meant to look like one careful person. Nothing is scheduled until you say so. [docs/DAILY.md](docs/DAILY.md) |
 | **`/accounts`** | Lets the tool apply on Workday, where every employer wants its own account. In progress, off until you turn it on. |
 | **`/inbox`** | Reads your connected Gmail, read-only, for replies to applications: the sender, the subject and Gmail's own preview, never the body. In progress. |

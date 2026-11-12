@@ -13,7 +13,7 @@ The CLI does the writing. Run from the repo root:
 npx jev tailor <job id> [<job id> ...] [--cover] [--fresh] [--open]
 ```
 
-It asks the writer for a one-page resume (and, with `--cover`, a one-page
+It asks the writer for a resume of up to two pages (and, with `--cover`, a one-page
 cover letter) built from the profile and the posting, checks every number
 and every capitalized name in the draft against the profile, renders the
 PDFs through the runner's own Chrome, and keeps them in

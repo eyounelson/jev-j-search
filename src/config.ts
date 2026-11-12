@@ -398,9 +398,9 @@ export const DOCUMENTS = {
   /** The most skills the tailored resume lists. */
   maxSkills: 14,
   /** Bullets per experience or project entry on the tailored resume, at most. */
-  maxBullets: 4,
+  maxBullets: 10,
   /** Pages the resume may run to. A longer one loses its lowest-ranked bullets until it fits. */
-  resumePages: 1,
+  resumePages: 2,
   /** Pages the cover letter may run to. */
   coverPages: 1,
   /** Paper for the PDFs, in inches. US Letter; A4 is 8.27 by 11.69. */

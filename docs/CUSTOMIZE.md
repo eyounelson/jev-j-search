@@ -44,7 +44,7 @@ npx jev templates --use mine
 ## A resume and a cover letter written for the job
 
 Off by default: your applications carry the resume file in your profile.
-Turn it on and the tool writes a one-page resume for each job from your
+Turn it on and the tool writes a resume of up to two pages for each job from your
 profile and the posting, and attaches that one instead.
 
 ```bash

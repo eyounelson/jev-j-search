@@ -277,7 +277,7 @@ program
 
 program
   .command("tailor <ids...>")
-  .description("Write a one-page resume, and with --cover a cover letter, for each job from your profile. Every claim is checked against the profile; the PDFs go to documents/tailored/<Company>_<Role>_<id>/")
+  .description("Write a resume (two pages at most unless DOCUMENTS says otherwise), and with --cover a cover letter, for each job from your profile. Every claim is checked against the profile; the PDFs go to documents/tailored/<Company>_<Role>_<id>/")
   .option("--cover", "also write a cover letter")
   .option("--fresh", "write again even when documents for this job exist")
   .option("--open", "open each PDF when it is written")
