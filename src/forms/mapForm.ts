@@ -410,10 +410,11 @@ async function mapFormFresh(jev: JevClient, profile: Profile, job: Job, dump: Fi
       return { ...(await ask(chunk.slice(0, half))), ...(await ask(chunk.slice(half))) };
     }
   };
+  const prefixBox = hasPrefixBox(dump.fields);
   for (let i = 0; i < askable.length; i += FORM.fieldsPerCall) {
     const chunk = askable.slice(i, i + FORM.fieldsPerCall);
     const answers = await ask(chunk);
-    for (const f of chunk) planned.push(planField(f, answers[f.id], profile, job));
+    for (const f of chunk) planned.push(planField(f, answers[f.id], profile, job, prefixBox));
   }
   const fileBoxes = dump.fields.filter((f) => f.kind === "file");
   const wants = fileBoxes.map(fileBoxWants);
@@ -458,7 +459,15 @@ async function mapFormFresh(jev: JevClient, profile: Profile, job: Job, dump: Fi
   };
 }
 
-export function planField(f: DumpedField, answer: Answer | undefined, profile: Profile, job: Job): PlannedField {
+/** A box of its own for the dialling code: "Country code", "Phone prefix". The phone box next to it then takes national digits. */
+const PREFIX_BOX = /country code|dial(?:l?ing)? code|calling code|phone (?:code|prefix|country)|phone[_-]?(?:code|prefix)|\bprefix\b/i;
+
+/** Whether the form has a separate box for the dialling code. A flag drawn inside the phone box itself does not count: it takes a leading + and picks the country from it. */
+export function hasPrefixBox(fields: DumpedField[]): boolean {
+  return fields.some((g) => g.kind !== "tel" && PREFIX_BOX.test(`${g.label} ${g.name}`));
+}
+
+export function planField(f: DumpedField, answer: Answer | undefined, profile: Profile, job: Job, prefixBox = false): PlannedField {
   const base = { id: f.id, selector: f.selector, kind: f.kind, label: f.label, required: f.required, optionLabel: null as string | null };
   // A reference's email or a supervisor's phone is not the applicant's: such a box is never filled from the profile.
   if (categoryOf(f) === "contact_other") {
@@ -466,8 +475,10 @@ export function planField(f: DumpedField, answer: Answer | undefined, profile: P
   }
   if (f.kind === "email") return { ...base, action: "fill", key: "email", value: profile.email, confidence: 1, note: null };
   if (f.kind === "tel") {
-    // National digits unless the placeholder or hint shows an international format.
-    const intl = /\+\d|country code|international/i.test(`${f.placeholder} ${f.hint}`);
+    // National digits unless the placeholder or hint shows an international format. Boards expect a
+    // North American number by default, so another country's number is typed with its code when
+    // the form has no box of its own for the code: bare digits would read as a US number.
+    const intl = /\+\d|country code|international/i.test(`${f.placeholder} ${f.hint}`) || (!prefixBox && profile.phone.countryCode !== "+1");
     return { ...base, action: "fill", key: intl ? "phone_with_country_code" : "phone", value: intl ? `${profile.phone.countryCode}${profile.phone.national}` : profile.phone.national, confidence: 1, note: null };
   }
   if (SIGNATURE_LABEL.test(f.label)) return { ...base, action: "review", key: "signature", value: null, confidence: 1, note: "signing an agreement is for the candidate to do" };
