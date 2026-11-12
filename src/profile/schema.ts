@@ -122,6 +122,12 @@ export const ProfileSchema = z.object({
     transgender: YesNoDecline,
   }),
   preferences: z.object({
+    /**
+     * Who the search is for. "early_career" (the default) looks for internships and new-grad roles
+     * and words the rating around the graduation date. "experienced" looks for mid, senior and
+     * regular roles, skips an internship unless it offers relocation, and drops the student wording.
+     */
+    targetLevel: z.enum(["early_career", "experienced"]).default("early_career"),
     earliestStart: z.string(),
     availability: z.string(),
     /** Left empty on purpose: the tool never volunteers a number. */

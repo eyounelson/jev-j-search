@@ -19,7 +19,7 @@ import { withStore } from "./util/store.js";
 const NOT_RERATED: readonly QueueStatus[] = KEPT_ON_REDISCOVERY.filter((s) => s !== "needs_review" && s !== "in_progress");
 /** Jobs kept in the queue when their posting is gone from every list: sent, unconfirmed, or waiting on the person or a run. */
 const CARRIED_OVER: readonly QueueStatus[] = KEPT_ON_REDISCOVERY.filter((s) => s !== "skipped" && s !== "failed");
-import { rateJob, type FitResult } from "./jobs/rate.js";
+import { rateJob, type FitResult, type TargetLevel } from "./jobs/rate.js";
 import { loadRows, saveRows, upsertEntry } from "./log/csv.js";
 import { usStatus, type Profile } from "./profile/schema.js";
 import type { Answer } from "./jev/types.js";
@@ -41,7 +41,18 @@ export function isEarlyCareerTitle(title: string, gradYear?: number): boolean {
   return EARLY_CAREER_TITLE.test(title) || (gradYear !== undefined && new RegExp(`\\b${gradYear}\\b`).test(title));
 }
 
+/** An engineering title. For an experienced search the boards keep these, minus the ones that name an early-career level: the rating decides the rest. */
+export const ENGINEER_TITLE = /\b(engineer|developer|programmer|architect|sre)\b/i;
+
+/** Whether a board posting is worth rating for this search. */
+export function isWantedTitle(title: string, targetLevel: TargetLevel = "early_career", gradYear?: number): boolean {
+  if (targetLevel === "experienced") return ENGINEER_TITLE.test(title) && !EARLY_CAREER_TITLE.test(title);
+  return isEarlyCareerTitle(title, gradYear);
+}
+
 export type DiscoverOptions = {
+  /** Which level the search is for. The default is early career. */
+  targetLevel?: TargetLevel;
   boards?: boolean;
   limit?: number;
   log?: (line: string) => void;
@@ -107,11 +118,11 @@ export async function collectJobs(opts: DiscoverOptions = {}): Promise<Job[]> {
     let fromBoards = 0;
     results.forEach((r) => {
       if (!r.ok) return;
-      const early = r.value.filter((j) => isEarlyCareerTitle(j.title, opts.gradYear));
-      fromBoards += early.length;
-      jobs.push(...early);
+      const wanted = r.value.filter((j) => isWantedTitle(j.title, opts.targetLevel, opts.gradYear));
+      fromBoards += wanted.length;
+      jobs.push(...wanted);
     });
-    log(`[sources] boards contributed ${fromBoards} early-career postings`);
+    log(`[sources] boards contributed ${fromBoards} ${opts.targetLevel === "experienced" ? "engineering" : "early-career"} postings`);
   }
   return dedupe(jobs);
 }
@@ -178,7 +189,7 @@ export async function discover(profile: Profile, jev: JevClient, opts: DiscoverO
   const prevById = new Map(previous.entries.map((e) => [e.job.id, e]));
 
   const gradYear = profile.education[0]?.gradYear;
-  const all = await collectJobs({ ...opts, ...(gradYear !== undefined ? { gradYear } : {}) });
+  const all = await collectJobs({ ...opts, targetLevel: profile.preferences.targetLevel, ...(gradYear !== undefined ? { gradYear } : {}) });
   const learned = learnedWalledHosts();
   const us = usStatus(profile);
   const collected = all.length;

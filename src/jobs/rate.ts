@@ -3,7 +3,7 @@
  * might need (speculative fan-out). Code turns the typed answers into a
  * composite score, hard skips, and human-readable reasons.
  */
-import { FIT_WEIGHTS, GRADUATION_MISMATCH_MULTIPLIER, LOCATION_MULTIPLIER, RECENCY_FLOOR, DISCOVER } from "../config.js";
+import { FIT_WEIGHTS, FIT_WEIGHTS_EXPERIENCED, GRADUATION_MISMATCH_MULTIPLIER, LEVEL_FIT_EXPERIENCED, LOCATION_MULTIPLIER, LOCATION_MULTIPLIER_EXPERIENCED, RECENCY_FLOOR, DISCOVER } from "../config.js";
 import type { JevClient } from "../jev/client.js";
 import { choice, noul, score, scoreToUnit } from "../jev/questions.js";
 import type { Answer, ChoiceAnswer, NoulAnswer, Questions, ScoreAnswer } from "../jev/types.js";
@@ -26,8 +26,40 @@ function termCriteria(gradMonth: number, gradYear: number): Record<string, strin
   };
 }
 
+export type TargetLevel = Profile["preferences"]["targetLevel"];
+
+/** What the rating needs of a profile: the education, and which level the search is for. */
+type FitProfile = Pick<Profile, "education"> & { preferences?: { targetLevel?: TargetLevel } };
+
+const isExperienced = (profile: FitProfile): boolean => profile.preferences?.targetLevel === "experienced";
+
+/**
+ * The questions for a candidate with work behind them. There is no term or graduation window to
+ * ask about, the levels are worded for mid and senior roles, and two questions say what the
+ * candidate cannot do: take an internship that does not help them move, or take a job in a
+ * country they may not work in without help.
+ */
+function experiencedQuestions(): Questions {
+  const { term: _term, graduation_excluded: _grad, returning_student_required: _return, ...rest } = FIT_QUESTIONS;
+  return {
+    ...rest,
+    level: choice("What level is this posting?", {
+      internship: "Internship, co-op, student or work term",
+      new_grad: "Says new grad, entry level or junior, or asks for 0 to 2 years",
+      experienced: "Mid, senior, staff, lead or principal, or a regular engineer role with no level in the title, or asks for 3 or more years",
+      other: "Unclear or not a job posting",
+    }),
+    offers_relocation: noul("Does the posting say the company offers relocation help, such as a relocation package or paid moving costs?"),
+    requires_other_authorization: noul("Does the posting need the candidate to already have the right to work in a country or region that is not in authorized_to_work_in, or to work on site outside those countries, with no mention of visa sponsorship or relocation help?", {
+      true: "Yes: on site or limited to candidates who live or may work in a place the candidate may not, and sponsorship is not mentioned",
+      false: "No: the role is remote and open to the candidate's country, or it is in a place the candidate may work, or the posting offers sponsorship or relocation",
+    }),
+  };
+}
+
 /** Every question for one posting, with the term and graduation wording taken from the profile. */
-export function fitQuestions(profile: Pick<Profile, "education">): Questions {
+export function fitQuestions(profile: FitProfile): Questions {
+  if (isExperienced(profile)) return experiencedQuestions();
   const edu = profile.education[0];
   const month = edu?.gradMonth ?? 4;
   const year = edu?.gradYear ?? new Date().getUTCFullYear() + 1;
@@ -109,7 +141,8 @@ export function buildFitState(job: Job, profile: Profile, now = new Date()): Rec
       summary: profile.summary,
       skills: profile.skills,
       facts: profile.facts,
-      graduation: profile.education[0] ? `${monthName(profile.education[0].gradMonth)} ${profile.education[0].gradYear}` : "not given",
+      // An experienced search has no graduation to weigh, and a degree finished years ago would only mislead the rating.
+      ...(profile.preferences.targetLevel === "experienced" ? {} : { graduation: profile.education[0] ? `${monthName(profile.education[0].gradMonth)} ${profile.education[0].gradYear}` : "not given" }),
       citizenship: profile.workAuthorization.citizenships,
       authorized_to_work_in: profile.workAuthorization.authorizedCountries,
       // Only when the profile lists any, so the ratings cached for every other profile stay valid.
@@ -138,10 +171,11 @@ export async function rateJob(jev: JevClient, job: Job, profile: Profile, now = 
     answers = await jev.decide(buildFitState(job, profile, now), fitQuestions(profile), `rate:${job.company}:${job.title}`);
     cache?.set(key, answers);
   }
-  return scoreFromAnswers(job, answers, now, usStatus(profile));
+  return scoreFromAnswers(job, answers, now, usStatus(profile), profile.preferences.targetLevel);
 }
 
-export function scoreFromAnswers(job: Job, answers: Record<string, Answer>, now = new Date(), us: { authorized: boolean; citizen: boolean } = { authorized: false, citizen: false }): FitResult {
+export function scoreFromAnswers(job: Job, answers: Record<string, Answer>, now = new Date(), us: { authorized: boolean; citizen: boolean } = { authorized: false, citizen: false }, target: TargetLevel = "early_career"): FitResult {
+  const experienced = target === "experienced";
   // A rating saved before a question existed simply lacks it; that reads as "no".
   const n = (k: string) => (answers[k] as NoulAnswer | undefined)?.noul ?? 0;
   const c = (k: string) => answers[k] as ChoiceAnswer;
@@ -153,16 +187,20 @@ export function scoreFromAnswers(job: Job, answers: Record<string, Answer>, now 
 
   let skipReason: string | null = null;
   if (n("is_software_role") < 0.5) skipReason = "not a software role";
-  else if (c("level").choice === "experienced" && c("level").confidence >= 0.6) skipReason = "requires professional experience";
+  else if (!experienced && c("level").choice === "experienced" && c("level").confidence >= 0.6) skipReason = "requires professional experience";
+  else if (experienced && c("level").choice === "internship" && c("level").confidence >= 0.6 && n("offers_relocation") <= 0.5) skipReason = "internship without relocation";
   else if (n("is_unpaid") > 0.7) skipReason = "unpaid";
   else if (n("needs_advanced_degree") > 0.7) skipReason = "advanced degree required";
   else if (c("work_auth").choice === "us_no_sponsorship" && c("work_auth").confidence >= 0.5 && !us.authorized) skipReason = "US role, no sponsorship";
   else if (c("work_auth").choice === "us_citizenship_required" && c("work_auth").confidence >= 0.5 && !us.citizen) skipReason = "US citizenship or clearance required";
+  else if (experienced && n("requires_other_authorization") > 0.7) skipReason = "needs work authorization or a move the candidate does not have";
   else if (job.ats === "other" && n("needs_account") > 0.9) skipReason = "needs an account to apply";
   else if (n("requires_references") > 0.85) skipReason = "references required";
 
-  const levelFit = { internship: 1, new_grad: 1, experienced: 0.1, other: 0.3 }[c("level").choice] ?? 0.3;
-  const termFit = { summer: 1, new_grad: 1, winter: 0.8, earlier: 0.3, other: 0.5 }[c("term").choice] ?? 0.5;
+  const levelFit = (experienced ? LEVEL_FIT_EXPERIENCED : { internship: 1, new_grad: 1, experienced: 0.1, other: 0.3 })[c("level").choice as "other"] ?? 0.3;
+  // An experienced search asks no term question, and its weight is zero.
+  const termAnswer = answers["term"] as ChoiceAnswer | undefined;
+  const termFit = termAnswer ? ({ summer: 1, new_grad: 1, winter: 0.8, earlier: 0.3, other: 0.5 }[termAnswer.choice] ?? 0.5) : 0;
   const components = {
     stackMatch: scoreToUnit(s("stack_match").score, LEVELS5.length),
     experienceMatch: scoreToUnit(s("experience_match").score, LEVELS5.length),
@@ -172,12 +210,12 @@ export function scoreFromAnswers(job: Job, answers: Record<string, Answer>, now 
     interviewPractical: n("interview_practical"),
   };
   let base = 0;
-  for (const [k, w] of Object.entries(FIT_WEIGHTS)) base += w * (components[k as keyof typeof components] ?? 0);
+  for (const [k, w] of Object.entries(experienced ? FIT_WEIGHTS_EXPERIENCED : FIT_WEIGHTS)) base += w * (components[k as keyof typeof components] ?? 0);
   const age = ageDays(job, now);
   const recency = age === null ? 0.85 : 1 - (1 - RECENCY_FLOOR) * Math.min(1, age / DISCOVER.maxAgeDays);
   // The candidate may still apply, so a graduation window that excludes them lowers the rank instead of dropping the job.
   const gradExcluded = n("graduation_excluded") > 0.7;
-  const scoreValue = Math.round(base * LOCATION_MULTIPLIER[tier] * recency * (gradExcluded ? GRADUATION_MISMATCH_MULTIPLIER : 1) * 1000) / 1000;
+  const scoreValue = Math.round(base * (experienced ? LOCATION_MULTIPLIER_EXPERIENCED : LOCATION_MULTIPLIER)[tier] * recency * (gradExcluded ? GRADUATION_MISMATCH_MULTIPLIER : 1) * 1000) / 1000;
 
   if (c("work_auth").choice === "us_sponsors" && !us.authorized) reasons.push("US role, sponsorship offered");
   if (c("work_auth").choice === "unclear" && tier === "us" && !us.authorized) reasons.push("US role, sponsorship not stated");

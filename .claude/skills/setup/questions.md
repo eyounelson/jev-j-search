@@ -45,7 +45,8 @@ their status, they should check before applying.
 
 | Ask | Goes in |
 |---|---|
-| Internships, new-grad roles, or both, and for which terms | `summary`, and a standing answer |
+| Which level: internships and new-grad roles, or mid, senior and regular roles? The second also skips an internship unless it offers relocation | `preferences.targetLevel` (`early_career` or `experienced`) |
+| For an early-career search, which terms | `summary`, and a standing answer |
 | The earliest date you can start | `preferences.earliestStart` |
 | How long you can work: term lengths, or "permanent" | `preferences.availability` |
 | The places you want to work, best first | `preferences.preferredLocations` |
