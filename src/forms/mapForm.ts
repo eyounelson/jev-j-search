@@ -189,7 +189,7 @@ const TEXT_KINDS = new Set(["text", "email", "tel", "url", "number", "date", "ca
 
 /** Input types whose value is fixed by the type itself; JEV only picks among the matching keys. */
 const KEYS_BY_KIND: Partial<Record<string, string[]>> = {
-  url: ["linkedin_url", "github_url", "website_url", "leave_blank"],
+  url: ["linkedin_url", "github_url", "website_url", "twitter_url", "leave_blank"],
 };
 
 export function questionsFor(fields: DumpedField[]): Questions {
