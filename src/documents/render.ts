@@ -70,7 +70,7 @@ export function coverView(profile: Profile, entry: { job: { company: string; tit
 }
 
 const contactText = (profile: Profile) => {
-  const bits = [profile.email, `${profile.phone.countryCode} ${profile.phone.national}`, `${profile.address.city}, ${profile.address.regionCode || profile.address.region}`];
+  const bits = [profile.email, `${profile.phone.countryCode} ${profile.phone.national}`, profile.resume.location || `${profile.address.city}, ${profile.address.regionCode || profile.address.region}`];
   const links = Object.entries(profile.links ?? {}).filter(([, v]) => typeof v === "string" && v) as [string, string][];
   for (const [, url] of links) bits.push(url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""));
   return bits.join(" \u00b7 ");
