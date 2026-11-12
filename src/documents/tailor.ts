@@ -43,7 +43,7 @@ export const setDocumentPolicy = (p: { resume: boolean; cover: boolean }) => {
 };
 
 const SYSTEM = [
-  "You write a one-page resume and, when asked, a one-page cover letter for one candidate and one job posting. You are given the candidate's facts, experience, projects and skills, the voice rules, and the posting.",
+  `You write a resume of at most ${DOCUMENTS.resumePages} page${DOCUMENTS.resumePages > 1 ? "s" : ""}, with at most ${DOCUMENTS.maxBullets} bullets for a job, and, when asked, a one-page cover letter for one candidate and one job posting. You are given the candidate's facts, experience, projects and skills, the voice rules, and the posting.`,
   "Reply with one JSON object and nothing else: {\"headline\": string, \"summary\": string, \"skills\": [string], \"experience\": [{\"company\": string, \"title\": string, \"bullets\": [string]}], \"projects\": [{\"name\": string, \"bullets\": [string]}], \"coverLetter\": {\"greeting\": string, \"paragraphs\": [string], \"closing\": string} | omitted, \"keywordsCovered\": [string], \"keywordsMissing\": [string]}.",
   "",
   "Truth comes first.",
