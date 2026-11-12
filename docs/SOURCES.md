@@ -24,6 +24,19 @@ wants the freshest postings. On one run, boards contributed about 2,000
 early-career postings on top of the lists, of which a few hundred were
 new.
 
+## Early career and experienced searches
+
+`preferences.targetLevel` in the profile picks who the search is for.
+`early_career` (the default) keeps early-career titles from the company
+boards and rates against the graduation date. `experienced` keeps every
+engineering title that does not name an early-career level, drops the term
+and graduation questions, rates mid, senior and regular roles as a good fit,
+and skips an internship unless the posting offers relocation. It also skips a
+role that needs the right to work, or a move, in a place the profile does not
+cover, with no sponsorship offered. The lists above still seed the boards and
+still carry internships, so an internship that offers relocation can come
+through.
+
 ## Descriptions
 
 The rating needs the posting text. `src/jobs/describe.ts` gets it from the

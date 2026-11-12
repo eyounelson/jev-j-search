@@ -109,6 +109,7 @@
     "transgender": "no"
   },
   "preferences": {
+    "targetLevel": "early_career",
     "earliestStart": "May 2027",
     "availability": "Available for 4, 8, 12 or 16 month terms",
     "salaryExpectation": "",

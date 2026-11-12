@@ -174,6 +174,32 @@ export const LOCATION_MULTIPLIER = {
   unclear: 0.7,
 } as const;
 
+/**
+ * The same three tables for `preferences.targetLevel: "experienced"`. The term is not scored, a
+ * mid, senior or regular role is what is wanted, and remote work ranks above every place that
+ * would need a visa or a move. Weights sum to 1.
+ */
+export const FIT_WEIGHTS_EXPERIENCED = {
+  stackMatch: 0.3,
+  experienceMatch: 0.25,
+  callbackLikelihood: 0.25,
+  levelFit: 0.15,
+  termFit: 0,
+  interviewPractical: 0.05,
+} as const;
+
+export const LOCATION_MULTIPLIER_EXPERIENCED = {
+  vancouver: 0.7,
+  canada: 0.7,
+  remote: 1.0,
+  us: 0.7,
+  international: 0.7,
+  unclear: 0.7,
+} as const;
+
+/** How well a posting's level suits an experienced candidate. An internship is skipped before this unless it offers relocation. */
+export const LEVEL_FIT_EXPERIENCED = { internship: 0.2, new_grad: 0.15, experienced: 1, other: 0.5 } as const;
+
 /** Applied when the posting asks for a graduation date the candidate does not have. They can still apply, so it ranks lower instead of being dropped. */
 export const GRADUATION_MISMATCH_MULTIPLIER = 0.6;
 
