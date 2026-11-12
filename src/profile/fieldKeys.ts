@@ -33,6 +33,7 @@ export const PROFILE_KEYS = {
   linkedin_url: "LinkedIn profile URL",
   github_url: "GitHub profile URL",
   website_url: "Personal website, portfolio or blog URL",
+  twitter_url: "X or Twitter profile URL",
   school: "University, college or school name",
   degree: "Degree type or level, such as Bachelor's",
   major: "Field of study or major",
@@ -122,6 +123,7 @@ export function valueFor(profile: Profile, key: ProfileKey): string | null {
     case "linkedin_url": return profile.links.linkedin;
     case "github_url": return profile.links.github;
     case "website_url": return profile.links.website ?? profile.links.portfolio ?? profile.links.github;
+    case "twitter_url": return profile.links.twitter ?? null;
     case "school": return edu.school;
     case "degree": return edu.degree;
     case "major": return edu.field;

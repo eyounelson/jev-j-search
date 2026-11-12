@@ -40,6 +40,8 @@ export const ProfileSchema = z.object({
     linkedin: z.string().url(),
     github: z.string().url(),
     website: z.string().url().optional(),
+    /** An X (Twitter) profile, for the forms that have a box for one. */
+    twitter: z.string().url().optional(),
     portfolio: z.string().url().optional(),
   }),
   education: z

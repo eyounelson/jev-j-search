@@ -56,7 +56,7 @@ describe("questionsFor", () => {
     const q = questionsFor([field({ id: "t", kind: "tel", label: "Phone Number" }), field({ id: "e", kind: "email", label: "Email" }), field({ id: "u", kind: "url", label: "LinkedIn" })]);
     expect(q.t).toBeUndefined();
     expect(q.e).toBeUndefined();
-    expect(Object.keys((q.u as { criteria: Record<string, string> }).criteria)).toEqual(["linkedin_url", "github_url", "website_url", "leave_blank"]);
+    expect(Object.keys((q.u as { criteria: Record<string, string> }).criteria)).toEqual(["linkedin_url", "github_url", "website_url", "twitter_url", "leave_blank"]);
   });
   it("fills tel and email inputs from the input type alone", () => {
     const j = job(["Toronto, ON"]);
