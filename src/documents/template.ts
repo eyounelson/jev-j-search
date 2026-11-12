@@ -59,8 +59,8 @@ export function renderTemplate(template: string, view: View): string {
 }
 
 /** The names a template may use, so a custom one can be checked before it is trusted with a real job. */
-export const RESUME_VIEW_KEYS = ["name", "headline", "contact", "summary", "skills", "skillList", "experience", "projects", "education"] as const;
-export const COVER_VIEW_KEYS = ["name", "contact", "date", "company", "role", "greeting", "paragraphs", "closing"] as const;
+export const RESUME_VIEW_KEYS = ["name", "headline", "contact", "contactHtml", "summary", "skills", "skillList", "experience", "projects", "education"] as const;
+export const COVER_VIEW_KEYS = ["name", "contact", "contactHtml", "date", "company", "role", "greeting", "paragraphs", "closing"] as const;
 
 /** The placeholders a template refers to. */
 export const placeholdersIn = (template: string): string[] => [...new Set([...template.matchAll(/\{\{[#^{]?\s*([A-Za-z_.][A-Za-z0-9_.]*)/g)].map((m) => m[1] ?? "").filter((k) => k && k !== "."))];

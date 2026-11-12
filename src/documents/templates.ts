@@ -58,7 +58,9 @@ export function checkTemplate(resumeHtml: string, coverHtml: string | null): str
   const resumeKeys = new Set<string>([...RESUME_VIEW_KEYS, "title", "company", "location", "when", "bullets", "role", "link", "degree", "field", "minor", "school", "projects.length"]);
   const coverKeys = new Set<string>(COVER_VIEW_KEYS);
   for (const k of placeholdersIn(resumeHtml)) if (!resumeKeys.has(k)) problems.push(`resume.html uses {{${k}}}, which the tool does not provide`);
-  for (const k of REQUIRED_RESUME) if (!placeholdersIn(resumeHtml).includes(k)) problems.push(`resume.html never uses {{${k}}}`);
+  const used = placeholdersIn(resumeHtml);
+  // The contact line may be the plain text or the one with clickable links.
+  for (const k of REQUIRED_RESUME) if (!(used.includes(k) || (k === "contact" && used.includes("contactHtml")))) problems.push(`resume.html never uses {{${k}}}`);
   if (coverHtml !== null) {
     for (const k of placeholdersIn(coverHtml)) if (!coverKeys.has(k)) problems.push(`cover.html uses {{${k}}}, which the tool does not provide`);
     for (const k of REQUIRED_COVER) if (!placeholdersIn(coverHtml).includes(k)) problems.push(`cover.html never uses {{${k}}}`);

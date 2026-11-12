@@ -27,6 +27,7 @@ The stock resume and cover letter are plain HTML with system fonts, printed to P
 | Placeholder | What it prints |
 |---|---|
 | `{{name}}`, `{{headline}}`, `{{contact}}`, `{{summary}}`, `{{skills}}` | Your name, the role in the posting's words, your contact line, the summary written for the job, the skills joined with dots (`{{#skillList}}{{.}}{{/skillList}}` for one at a time) |
+| `{{{contactHtml}}}` | The contact line with each link as a clickable word (LinkedIn, GitHub, Website). Three braces print it as HTML. `resume.leaveOut` in your profile (`phone`, `linkedin`, `github`, `website`, `portfolio`, `twitter`) keeps those off the contact line of every document the tool writes; forms still get them. |
 | `{{#experience}} ... {{/experience}}` | One block per job, with `{{title}}`, `{{company}}`, `{{location}}`, `{{when}}` and `{{#bullets}}{{.}}{{/bullets}}` inside |
 | `{{#projects}} ... {{/projects}}` | The same, with `{{name}}`, `{{role}}`, `{{link}}`, `{{when}}`, `{{#bullets}}` |
 | `{{#education}} ... {{/education}}` | `{{degree}}`, `{{field}}`, `{{minor}}`, `{{school}}`, `{{when}}` |

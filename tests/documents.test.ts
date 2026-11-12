@@ -87,6 +87,22 @@ describe("rendering", () => {
     expect(html).toContain(profile.email);
     expect(resumeMarkdown(profile, t)).toContain(`**${first.title}**, ${first.company}`);
   });
+  it("prints each link as a clickable word, and leaves out what the profile says to leave out", () => {
+    const t = draft();
+    const plain = resumeHtml(profile, t);
+    expect(plain).toContain(`<a href="${profile.links.linkedin}">LinkedIn</a>`);
+    expect(plain).toContain(`<a href="${profile.links.github}">GitHub</a>`);
+    expect(plain).toContain(profile.phone.national);
+    const trimmed = { ...profile, links: { ...profile.links, twitter: "https://x.com/example" }, resume: { ...profile.resume, leaveOut: ["phone" as const, "twitter" as const] } };
+    const html = resumeHtml(trimmed, t);
+    expect(html).not.toContain(profile.phone.national);
+    expect(html).not.toContain("x.com/example");
+    expect(html).toContain(">LinkedIn</a>");
+  });
+  it("makes a link only of an http or https address", () => {
+    const odd = { ...profile, links: { ...profile.links, website: "javascript:alert(1)" } };
+    expect(resumeHtml(odd, draft())).not.toContain('href="javascript:');
+  });
   it("prints the mailing city under the name, or the place the profile names for documents", () => {
     const t = draft();
     expect(resumeHtml(profile, t)).toContain(`${profile.address.city}, ${profile.address.regionCode}`);
