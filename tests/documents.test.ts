@@ -87,6 +87,11 @@ describe("rendering", () => {
     expect(html).toContain(profile.email);
     expect(resumeMarkdown(profile, t)).toContain(`**${first.title}**, ${first.company}`);
   });
+  it("keeps a heading with its first bullet and does not split a bullet across pages", () => {
+    const html = resumeHtml(profile, draft());
+    expect(html).toMatch(/\.row, h2 \{ break-after: avoid; \}/);
+    expect(html).toContain("li { break-inside: avoid; }");
+  });
   it("prints the mailing city under the name, or the place the profile names for documents", () => {
     const t = draft();
     expect(resumeHtml(profile, t)).toContain(`${profile.address.city}, ${profile.address.regionCode}`);
