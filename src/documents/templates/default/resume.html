@@ -11,6 +11,8 @@
   h2 { font-size: 10.5pt; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #999; padding-bottom: 2px; margin: 12px 0 6px; }
   p { margin: 0 0 6px; } ul { margin: 2px 0 6px; padding-left: 16px; } li { margin: 0 0 2px; }
   .row { display: flex; justify-content: space-between; align-items: baseline; }
+  /* A job or school heading stays with its first bullet, a bullet is not split across pages, and a section title stays with what follows. */
+  .row, h2 { break-after: avoid; } li { break-inside: avoid; }
   .row .where { color: #333; } .row .when { color: #555; font-size: 9.5pt; white-space: nowrap; margin-left: 10px; }
 </style></head>
 <body>
