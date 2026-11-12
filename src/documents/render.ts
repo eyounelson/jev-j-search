@@ -42,6 +42,7 @@ export function resumeView(profile: Profile, t: Tailored): View {
     name: `${profile.name.first} ${profile.name.last}`,
     headline: t.headline,
     contact: contactText(profile),
+    contactHtml: contactHtml(profile),
     summary: t.summary,
     skills: t.skills.join(" \u00b7 "),
     skillList: t.skills,
@@ -60,6 +61,7 @@ export function coverView(profile: Profile, entry: { job: { company: string; tit
   return {
     name,
     contact: contactText(profile),
+    contactHtml: contactHtml(profile),
     date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
     company: entry.job.company,
     role: entry.job.title,
@@ -69,11 +71,29 @@ export function coverView(profile: Profile, entry: { job: { company: string; tit
   };
 }
 
+const LINK_LABELS: Record<string, string> = { linkedin: "LinkedIn", github: "GitHub", website: "Website", portfolio: "Portfolio", twitter: "X" };
+
+/** The contact line in parts: what is plain text, and the profile's links, minus what the profile leaves out of documents. */
+function contactParts(profile: Profile): { plain: string[]; links: [string, string][] } {
+  const left = new Set<string>(profile.resume.leaveOut ?? []);
+  const plain = [profile.email];
+  if (!left.has("phone")) plain.push(`${profile.phone.countryCode} ${profile.phone.national}`);
+  plain.push(profile.resume.location || `${profile.address.city}, ${profile.address.regionCode || profile.address.region}`);
+  const links = Object.entries(profile.links ?? {}).filter(([k, v]) => typeof v === "string" && v && !left.has(k)) as [string, string][];
+  return { plain, links };
+}
+
+/** The contact line as text, with each link written out. */
 const contactText = (profile: Profile) => {
-  const bits = [profile.email, `${profile.phone.countryCode} ${profile.phone.national}`, profile.resume.location || `${profile.address.city}, ${profile.address.regionCode || profile.address.region}`];
-  const links = Object.entries(profile.links ?? {}).filter(([, v]) => typeof v === "string" && v) as [string, string][];
-  for (const [, url] of links) bits.push(url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""));
-  return bits.join(" \u00b7 ");
+  const { plain, links } = contactParts(profile);
+  return [...plain, ...links.map(([, url]) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))].join(" \u00b7 ");
+};
+
+/** The contact line as HTML: each link is a clickable word (LinkedIn, GitHub, Website). Only an http or https address becomes a link. */
+const contactHtml = (profile: Profile) => {
+  const { plain, links } = contactParts(profile);
+  const anchors = links.map(([k, url]) => (/^https?:\/\//i.test(url) ? `<a href="${escapeHtml(url)}">${escapeHtml(LINK_LABELS[k] ?? k)}</a>` : escapeHtml(url)));
+  return [...plain.map(escapeHtml), ...anchors].join(" \u00b7 ");
 };
 
 /** The resume through the template in use. */

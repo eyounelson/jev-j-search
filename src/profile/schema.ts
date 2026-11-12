@@ -151,6 +151,8 @@ export const ProfileSchema = z.object({
     filename: z.string(),
     /** The place printed under the name on a resume or cover letter the tool writes, when it should not be the mailing address ("Lagos, Nigeria"). Forms still get the address. */
     location: z.string().optional(),
+    /** What stays off a resume or cover letter the tool writes. The forms still get it. */
+    leaveOut: z.array(z.enum(["phone", "linkedin", "github", "website", "portfolio", "twitter"])).default([]),
   }),
   /** An academic transcript, attached only to a file box that asks for one. Leave it out and such a form is held for you. */
   transcript: z.object({ path: z.string() }).optional(),
