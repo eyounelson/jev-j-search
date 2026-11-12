@@ -87,6 +87,14 @@ describe("rendering", () => {
     expect(html).toContain(profile.email);
     expect(resumeMarkdown(profile, t)).toContain(`**${first.title}**, ${first.company}`);
   });
+  it("prints the mailing city under the name, or the place the profile names for documents", () => {
+    const t = draft();
+    expect(resumeHtml(profile, t)).toContain(`${profile.address.city}, ${profile.address.regionCode}`);
+    const named = { ...profile, resume: { ...profile.resume, location: "Springfield, Exampleland" } };
+    const html = resumeHtml(named, t);
+    expect(html).toContain("Springfield, Exampleland");
+    expect(html).not.toContain(profile.address.city);
+  });
   it("prints the cover letter with the company and the closing", () => {
     const entry = { job: { id: "x", company: "Acme Robotics", title: "Software Engineer Intern" } } as never;
     const html = coverHtml(profile, entry, draft());
