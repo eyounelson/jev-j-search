@@ -62,6 +62,10 @@ describe("a cover letter that reads as machine-written", () => {
     expect(tells).toContain('the phrase "i am excited"');
     expect(tells).toContain('the phrase "aligns with"');
     expect(tells).toContain("a dash used as punctuation");
+    for (const phrase of ["What stood out to me was the queue.", "It caught my attention.", "I have a proven track record.", "I am a results-driven engineer.", "Honestly, it fits.", "To be blunt, I am ready.", "My honest recommendation is to talk."]) {
+      t.coverLetter!.paragraphs[0] = phrase;
+      expect(machineTells(t), phrase).not.toEqual([]);
+    }
     t.coverLetter!.paragraphs[0] = Array.from({ length: 40 }, () => "word").join(" ") + ".";
     expect(machineTells(t).some((x) => x.includes("sentence(s) over"))).toBe(true);
   });
@@ -98,6 +102,13 @@ describe("rendering", () => {
     expect(html).not.toContain(profile.phone.national);
     expect(html).not.toContain("x.com/example");
     expect(html).toContain(">LinkedIn</a>");
+  });
+  it("leaves the place under the name off a document when the profile says so", () => {
+    const named = { ...profile, resume: { ...profile.resume, location: "Springfield, Exampleland", leaveOut: ["location" as const] } };
+    const html = resumeHtml(named, draft());
+    expect(html).not.toContain("Springfield");
+    expect(html).not.toContain(`${profile.address.city}, ${profile.address.regionCode}`);
+    expect(html).toContain(profile.email);
   });
   it("makes a link only of an http or https address", () => {
     const odd = { ...profile, links: { ...profile.links, website: "javascript:alert(1)" } };

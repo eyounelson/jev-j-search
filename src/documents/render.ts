@@ -78,7 +78,7 @@ function contactParts(profile: Profile): { plain: string[]; links: [string, stri
   const left = new Set<string>(profile.resume.leaveOut ?? []);
   const plain = [profile.email];
   if (!left.has("phone")) plain.push(`${profile.phone.countryCode} ${profile.phone.national}`);
-  plain.push(profile.resume.location || `${profile.address.city}, ${profile.address.regionCode || profile.address.region}`);
+  if (!left.has("location")) plain.push(profile.resume.location || `${profile.address.city}, ${profile.address.regionCode || profile.address.region}`);
   const links = Object.entries(profile.links ?? {}).filter(([k, v]) => typeof v === "string" && v && !left.has(k)) as [string, string][];
   return { plain, links };
 }

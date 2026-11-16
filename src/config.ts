@@ -421,6 +421,7 @@ export const DOCUMENTS = {
     "aligns with", "aligned with", "resonates", "resonate with", "leverage", "utilize", "furthermore", "moreover", "additionally", "in conclusion", "in today's", "fast-paced", "cutting-edge", "innovative", "dynamic", "impactful",
     "world-class", "best-in-class", "delve", "tapestry", "journey", "seamless", "robust", "spearheaded", "synergy", "eager to contribute", "contribute to your team", "hone my skills", "hit the ground running", "thrive",
     "unique opportunity", "i look forward to hearing", "thank you for considering", "not only", "testament to", "deeply", "truly", "it is worth noting", "skill set", "wealth of experience",
+    "what stood out to me", "caught my attention", "what excites me", "proven track record", "results-driven", "honestly", "to be blunt", "my honest recommendation",
   ],
   /** The longest a cover letter sentence may run, in words, and the longest letter. People write short. */
   maxSentenceWords: 28,
